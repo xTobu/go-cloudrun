@@ -1,10 +1,18 @@
-FROM golang:1.20 as build
+# ---- Builder----
+FROM golang:1.20 as builder
 
-WORKDIR /app
+WORKDIR /workspace
+ENV GO111MODULE=on
 
 COPY . .
 
-RUN go mod tidy && \
-    go build -o myGolangApp
+RUN go mod tidy
+RUN go build -o /bin/server
 
-ENTRYPOINT ./myGolangApp
+
+# ---- Stage ----
+FROM debian:12-slim as stage
+
+COPY --from=builder /bin/server /bin/server
+
+ENTRYPOINT ["./bin/server"]
